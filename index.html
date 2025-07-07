@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <title>Random Letter Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="https://fav.farm/🎵" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1e1e1e" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <style>
     * {
       box-sizing: border-box;
@@ -147,6 +150,7 @@
   </style>
 </head>
 <body>
+  <button id="mobileBtn">Toggle Settings</button>
   <div class="sidebar" id="sidebar">
     <h2>Settings</h2>
 
@@ -170,9 +174,18 @@
     <div class="output" id="letterOutput">?</div>
   </div>
 
-  <button id="mobileBtn">Toggle Settings</button>
-
   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+
     const normalLetters = ["A", "H", "C", "D", "E", "F", "G"];
     const extendedLetters = [...normalLetters, "A#", "Ab", "Bb", "C#", "Cb", "D#", "Db", "Eb", "F#", "Fb", "G#", "Gb"];
 
