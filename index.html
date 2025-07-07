@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Random Letter Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="https://fav.farm/🎵" />
   <style>
     * {
       box-sizing: border-box;
@@ -46,6 +46,16 @@
       color: #ffffff;
     }
 
+    button {
+      padding: 0.7rem;
+      border: none;
+      border-radius: 0.4rem;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     label, select, input, button {
       width: 100%;
       margin-bottom: 1rem;
@@ -60,6 +70,7 @@
 
     input[type="range"] {
       -webkit-appearance: none;
+      appearance: none;
       background: #444;
       height: 6px;
       border-radius: 5px;
@@ -92,9 +103,18 @@
       background-color: #e53935;
     }
 
+    button#mobileBtn {
+        background-color: #777;
+        display: none;
+    }
+
     button:disabled {
-      background-color: #777;
+      background-color: #777 !important;
       cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 600px) {
@@ -119,11 +139,15 @@
       button {
         padding: 1rem;
       }
+
+      button#mobileBtn {
+        display: block;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <h2>Settings</h2>
 
     <label for="set">Letter set:</label>
@@ -146,6 +170,8 @@
     <div class="output" id="letterOutput">?</div>
   </div>
 
+  <button id="mobileBtn">Toggle Settings</button>
+
   <script>
     const normalLetters = ["A", "H", "C", "D", "E", "F", "G"];
     const extendedLetters = [...normalLetters, "A#", "Ab", "Bb", "C#", "Cb", "D#", "Db", "Eb", "F#", "Fb", "G#", "Gb"];
@@ -158,53 +184,75 @@
     const intervalInput = document.getElementById("interval");
     const volumeSlider = document.getElementById("volume");
     const letterOutput = document.getElementById("letterOutput");
+    const sidebar = document.getElementById("sidebar");
+    const mobileBtn = document.getElementById("mobileBtn");
+    let isSettingsVisible = true;
+
+    const mediaQuery = window.matchMedia("(max-width: 600px)");
+
+    function handleTableChange(event) {
+        if (event.matches && !isSettingsVisible) {
+          sidebar.classList.add("hidden");
+        } else {
+          sidebar.classList.remove("hidden");
+        }
+    }
 
     function getSelectedSet() {
-      const set = document.getElementById("set").value;
-      return set === "normal" ? normalLetters : extendedLetters;
+        const set = document.getElementById("set").value;
+        return set === "normal" ? normalLetters : extendedLetters;
     }
 
     function sanitizeFilename(letter) {
-      return letter.replace("#", "sharp").replace("b", "flat");
+        return letter.replace("#", "sharp").replace("b", "flat");
     }
 
     function playSound(letter) {
-      const sanitized = sanitizeFilename(letter);
-      const soundPath = `sounds/${sanitized}.mp3`;
-      audio.src = soundPath;
-      audio.volume = parseFloat(volumeSlider.value);
-      audio.play().catch(err => {
-        console.warn(`Could not play sound for ${letter}:`, err);
-      });
-    }
+        const sanitized = sanitizeFilename(letter);
+        const soundPath = `sounds/${sanitized}.mp3`;
+        audio.src = soundPath;
+        audio.volume = parseFloat(volumeSlider.value);
+        audio.play().catch(err => {
+            console.warn(`Could not play sound for ${letter}:`, err);
+        });
+        }
 
-    startBtn.addEventListener("click", () => {
-      const letters = getSelectedSet();
-      const interval = parseFloat(intervalInput.value) * 1000;
+        startBtn.addEventListener("click", () => {
+        const letters = getSelectedSet();
+        const interval = parseFloat(intervalInput.value) * 1000;
 
-      if (isNaN(interval) || interval <= 0) {
-        alert("Please enter a valid positive number for interval.");
-        return;
-      }
+        if (isNaN(interval) || interval <= 0) {
+            alert("Please enter a valid positive number for interval.");
+            return;
+        }
 
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
 
-      function showRandomLetter() {
-        const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-        letterOutput.textContent = randomLetter;
-        playSound(randomLetter);
-      }
+        function showRandomLetter() {
+            const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+            letterOutput.textContent = randomLetter;
+            playSound(randomLetter);
+        }
 
-      showRandomLetter(); // immediately show one
-      intervalId = setInterval(showRandomLetter, interval);
+        showRandomLetter(); // immediately show one
+        intervalId = setInterval(showRandomLetter, interval);
     });
 
     stopBtn.addEventListener("click", () => {
-      clearInterval(intervalId);
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+        isPlaying = false;
+        clearInterval(intervalId);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
     });
+
+    mobileBtn.addEventListener("click", () => {
+        isSettingsVisible = !isSettingsVisible;
+        sidebar.classList.toggle("hidden", !isSettingsVisible);
+    });
+
+    mediaQuery.addEventListener("change", handleTableChange);
+    handleTableChange(mediaQuery);
   </script>
 </body>
 </html>
