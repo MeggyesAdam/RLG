@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Random Letter Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #f0f0f0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: #1e1e1e;
+      padding: 2rem;
+      width: 300px;
+      max-width: 100%;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .output {
+      font-size: 18vw;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    label, select, input, button {
+      width: 100%;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    select, input[type="number"] {
+      padding: 0.5rem;
+      border-radius: 0.4rem;
+      border: none;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      background: #444;
+      height: 6px;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+    }
+
+    button#startBtn {
+      background-color: #4CAF50;
+    }
+
+    button#stopBtn {
+      background-color: #e53935;
+    }
+
+    button:disabled {
+      background-color: #777;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        box-shadow: none;
+        padding: 1rem;
+      }
+
+      .output {
+        font-size: 25vw;
+      }
+
+      label, select, input, button {
+        font-size: 1.1rem;
+      }
+
+      button {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Settings</h2>
+
+    <label for="set">Letter set:</label>
+    <select id="set">
+      <option value="normal">Normal</option>
+      <option value="extended">Extended</option>
+    </select>
+
+    <label for="interval">Interval (seconds):</label>
+    <input type="number" id="interval" min="0.1" step="0.1" value="1" />
+
+    <label for="volume">Volume:</label>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="1" />
+
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+
+  <div class="main">
+    <div class="output" id="letterOutput">?</div>
+  </div>
+
+  <script>
+    const normalLetters = ["A", "H", "C", "D", "E", "F", "G"];
+    const extendedLetters = [...normalLetters, "A#", "Ab", "Bb", "C#", "Cb", "D#", "Db", "Eb", "F#", "Fb", "G#", "Gb"];
+
+    let intervalId = null;
+    let audio = new Audio();
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const intervalInput = document.getElementById("interval");
+    const volumeSlider = document.getElementById("volume");
+    const letterOutput = document.getElementById("letterOutput");
+
+    function getSelectedSet() {
+      const set = document.getElementById("set").value;
+      return set === "normal" ? normalLetters : extendedLetters;
+    }
+
+    function sanitizeFilename(letter) {
+      return letter.replace("#", "sharp").replace("b", "flat");
+    }
+
+    function playSound(letter) {
+      const sanitized = sanitizeFilename(letter);
+      const soundPath = `sounds/${sanitized}.mp3`;
+      audio.src = soundPath;
+      audio.volume = parseFloat(volumeSlider.value);
+      audio.play().catch(err => {
+        console.warn(`Could not play sound for ${letter}:`, err);
+      });
+    }
+
+    startBtn.addEventListener("click", () => {
+      const letters = getSelectedSet();
+      const interval = parseFloat(intervalInput.value) * 1000;
+
+      if (isNaN(interval) || interval <= 0) {
+        alert("Please enter a valid positive number for interval.");
+        return;
+      }
+
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+
+      function showRandomLetter() {
+        const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+        letterOutput.textContent = randomLetter;
+        playSound(randomLetter);
+      }
+
+      showRandomLetter(); // immediately show one
+      intervalId = setInterval(showRandomLetter, interval);
+    });
+
+    stopBtn.addEventListener("click", () => {
+      clearInterval(intervalId);
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>
